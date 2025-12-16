@@ -1,4 +1,4 @@
-#ifndef OLC6502_H
+ï»¿#ifndef OLC6502_H
 #define OLC6502_H
 
 #include <cstdint>
@@ -7,6 +7,18 @@
 
 namespace nes {
 class Bus;
+
+enum Flag : uint8_t
+{
+    E_CARRAY_BIT = (1 << 0),	// Carry Bit
+    E_ZERO = (1 << 1),	// Zero
+    E_DISABLE_INTERRUPTS = (1 << 2),	// Disable Interrupts
+    E_DECIMAL_MODE = (1 << 3),	// Decimal Mode (unused in this implementation)
+    E_BREAK = (1 << 4),	// Break
+    E_UNUSED = (1 << 5),	// Unused
+    E_OVERFLOW = (1 << 6),	// Overflow
+    E_NEGATIVE = (1 << 7),	// Negative
+};
 
 class OLC6502 {
 public:
@@ -26,6 +38,14 @@ public:
     uint8_t read(uint16_t address);
 
     void reset();
+
+public:
+    uint8_t  accumulator_register = 0x00;		// ç´¯è®¡å¯„å­˜å™¨
+    uint8_t  x_register = 0x00;		            // X å¯„å­˜å™¨
+    uint8_t  y_register = 0x00;		            // Y å¯„å­˜å™¨
+    uint8_t  sp = 0x00;		                    // å †æ ˆæŒ‡é’ˆ
+    uint16_t pc = 0x0000;	                    // ç¨‹åºè®¡æ•°å™¨
+    uint8_t  status_register = 0x00;		    // çŠ¶æ€å¯„å­˜å™¨
 
 private:
     uint8_t IMP();	uint8_t IMM();
@@ -52,25 +72,20 @@ private:
 
     uint8_t XXX();
 
-public:
-    uint8_t  accumulator_register = 0x00;		// ÀÛ¼Æ¼Ä´æÆ÷
-    uint8_t  x_register = 0x00;		            // X ¼Ä´æÆ÷
-    uint8_t  y_register = 0x00;		            // Y ¼Ä´æÆ÷
-    uint8_t  sp = 0x00;		                    // ¶ÑÕ»Ö¸Õë
-    uint16_t pc = 0x0000;	                    // ³ÌÐò¼ÆÊýÆ÷
-    uint8_t  status_register = 0x00;		    // ×´Ì¬¼Ä´æÆ÷
+    uint8_t getFlag(Flag flag) {
+        return (status_register & flag) > 0 ? 1 : 0;
+    }
+    
+    void setFlag(Flag flag, bool value) {
+        if (value) {
+            status_register |= flag;
+        }
+        else {
+            status_register &= ~flag;
+        }
+    }
 
-    enum Flag
-    {
-        E_CARRAY_BIT = (1 << 0),	// Carry Bit
-        E_ZERO = (1 << 1),	// Zero
-        E_DISABLE_INTERRUPTS = (1 << 2),	// Disable Interrupts
-        E_DECIMAL_MODE = (1 << 3),	// Decimal Mode (unused in this implementation)
-        E_BREAK = (1 << 4),	// Break
-        E_UNUSED = (1 << 5),	// Unused
-        E_OVERFLOW = (1 << 6),	// Overflow
-        E_NEGATIVE = (1 << 7),	// Negative
-    };
+    void clock();
 
 private:
     Bus* bus;
@@ -106,6 +121,9 @@ private:
         { "CPX", &CPX, &IMM, 2 },{ "SBC", &SBC, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "CPX", &CPX, &ZP0, 3 },{ "SBC", &SBC, &ZP0, 3 },{ "INC", &INC, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "INX", &INX, &IMP, 2 },{ "SBC", &SBC, &IMM, 2 },{ "NOP", &NOP, &IMP, 2 },{ "???", &SBC, &IMP, 2 },{ "CPX", &CPX, &ABS, 4 },{ "SBC", &SBC, &ABS, 4 },{ "INC", &INC, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
         { "BEQ", &BEQ, &REL, 2 },{ "SBC", &SBC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ZPX, 4 },{ "INC", &INC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SED", &SED, &IMP, 2 },{ "SBC", &SBC, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ABX, 4 },{ "INC", &INC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
     };
+
+
+
 };
 }
 

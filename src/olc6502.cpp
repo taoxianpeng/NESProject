@@ -1,4 +1,4 @@
-#include "olc6502.h"
+ï»¿#include "olc6502.h"
 #include <cstdio>
 #include <bus.h>
 
@@ -49,15 +49,15 @@ void OLC6502::reset()
 
 uint8_t OLC6502::IMP()
 {
-    // Òşº¬Ñ°Ö·, ÒâË¼ÊÇ¸ÃÖ¸Áî²»ĞèÒªÊ¹ÓÃ²ÎÊı£¬
-    // ËùÒÔÕâ¸öº¯Êı²»ĞèÒª»ñÈ¡ÏÂÒ»¸ö×Ö½ÚµÄ²ÎÊı×÷Îª²Ù×÷Êı
+    // éšå«å¯»å€, æ„æ€æ˜¯è¯¥æŒ‡ä»¤ä¸éœ€è¦ä½¿ç”¨å‚æ•°ï¼Œ
+    // æ‰€ä»¥è¿™ä¸ªå‡½æ•°ä¸éœ€è¦è·å–ä¸‹ä¸€ä¸ªå­—èŠ‚çš„å‚æ•°ä½œä¸ºæ“ä½œæ•°
     return 0;
 }
 
 uint8_t OLC6502::IMM()
 {
-    // Á¢¼´Ñ°Ö·£¨immediate mode addressing£©£¬ÒâË¼ÊÇ²Ù×÷Êı¾ÍÊÇ¸ÃÖ¸ÁîµÄÒ»²¿·Ö£¬
-    // Ö¸ÁîºóÃæµÄ²ÎÊı¾ÍÊÇ²Ù×÷Êı(²»ĞèÒªÔÙÈ¥ÄÚ´æµØÖ·ÖĞÕÒ³öÀ´)
+    // ç«‹å³å¯»å€ï¼ˆimmediate mode addressingï¼‰ï¼Œæ„æ€æ˜¯æ“ä½œæ•°å°±æ˜¯è¯¥æŒ‡ä»¤çš„ä¸€éƒ¨åˆ†ï¼Œ
+    // æŒ‡ä»¤åé¢çš„å‚æ•°å°±æ˜¯æ“ä½œæ•°(ä¸éœ€è¦å†å»å†…å­˜åœ°å€ä¸­æ‰¾å‡ºæ¥)
     addr_abs = pc;
     pc++;
     return 0;
@@ -65,9 +65,9 @@ uint8_t OLC6502::IMM()
 
 uint8_t OLC6502::ZP0()
 {
-    // ÁãÒ³Ñ°Ö·, Êı¾İ´æ·ÅÔÚµÚ0Ò³ÄÚ´æÖĞ(µØÖ··¶Î§0x00µ½0xFF),
-    // 16Î»µØÖ·µÄ¸ß×Ö½Ú²¿·ÖÊÇÒ³µÄµØÖ·, µÍ×Ö½Ú²¿·ÖÊÇÊı¾İ
-    // ¸ß8Î»¿ÉÒÔ±íÊ¾256¸öÒ³Ãæ£¬µÍ8Î»±íÊ¾Ò»¸öÒ³ÃæÓĞ256×Ö½ÚÓÃÀ´´æ´¢Êı¾İ
+    // é›¶é¡µå¯»å€, æ•°æ®å­˜æ”¾åœ¨ç¬¬0é¡µå†…å­˜ä¸­(åœ°å€èŒƒå›´0x00åˆ°0xFF),
+    // 16ä½åœ°å€çš„é«˜å­—èŠ‚éƒ¨åˆ†æ˜¯é¡µçš„åœ°å€, ä½å­—èŠ‚éƒ¨åˆ†æ˜¯æ•°æ®
+    // é«˜8ä½å¯ä»¥è¡¨ç¤º256ä¸ªé¡µé¢ï¼Œä½8ä½è¡¨ç¤ºä¸€ä¸ªé¡µé¢æœ‰256å­—èŠ‚ç”¨æ¥å­˜å‚¨æ•°æ®
     addr_abs = static_cast<uint16_t>(read(pc));
     pc++;
     addr_abs &= 0x00FF;
@@ -76,9 +76,9 @@ uint8_t OLC6502::ZP0()
 
 uint8_t OLC6502::ZPX()
 {
-    // ÁãÒ³X±äÖ·£¨zero page addressing with X register offset£©¡£
-    // Ìá¹©¸øÖ¸ÁîµÄÁãÒ³µØÖ·Òª¼ÓÉÏX¼Ä´æÆ÷µÄÖµ×é³ÉĞÂµÄÄÚ´æµØÖ·£¬ÕâÑù¶ÔÓÚ±éÀúÄÚ´æÇøÓòºÜÓĞÓÃ
-    // ÀàËÆCÓïÑÔ£¬Êı×é»ùµØÖ·+Ë÷ÒıÆ«ÒÆÁ¿
+    // é›¶é¡µXå˜å€ï¼ˆzero page addressing with X register offsetï¼‰ã€‚
+    // æä¾›ç»™æŒ‡ä»¤çš„é›¶é¡µåœ°å€è¦åŠ ä¸ŠXå¯„å­˜å™¨çš„å€¼ç»„æˆæ–°çš„å†…å­˜åœ°å€ï¼Œè¿™æ ·å¯¹äºéå†å†…å­˜åŒºåŸŸå¾ˆæœ‰ç”¨
+    // ç±»ä¼¼Cè¯­è¨€ï¼Œæ•°ç»„åŸºåœ°å€+ç´¢å¼•åç§»é‡
     addr_abs = static_cast<uint16_t>(read(pc) + x_register);
     pc++;
     addr_abs &= 0x00FF;
@@ -87,7 +87,7 @@ uint8_t OLC6502::ZPX()
 
 uint8_t OLC6502::ZPY()
 {
-    // ÁãÒ³Y±äÖ·£¬ÀàËÆÓÚÁãÒ³X±äÖ·£¬Ö»²»¹ıÊÇÊ¹ÓÃY¼Ä´æÆ÷×÷ÎªÆ«ÒÆÁ¿
+    // é›¶é¡µYå˜å€ï¼Œç±»ä¼¼äºé›¶é¡µXå˜å€ï¼Œåªä¸è¿‡æ˜¯ä½¿ç”¨Yå¯„å­˜å™¨ä½œä¸ºåç§»é‡
     addr_abs = static_cast<uint16_t>(read(pc) + y_register);
     pc++;
     addr_abs &= 0x00FF;
@@ -96,9 +96,9 @@ uint8_t OLC6502::ZPY()
 
 uint8_t OLC6502::REL()
 {
-    // Ïà¶ÔÑ°Ö·Ä£Ê½£¬Í¨³£ÓÃÓÚ·ÖÖ§Ö¸Áî
+    // ç›¸å¯¹å¯»å€æ¨¡å¼ï¼Œé€šå¸¸ç”¨äºåˆ†æ”¯æŒ‡ä»¤
     addr_rel = static_cast<uint16_t>(read(pc));
-    // ¼ì²éµÚ8ÊÇ·ñÎª1£¨¸ºÊı£©£¬Îª¸ºÊıÔòÒªÀ©Õ¹16Î»£¬¸ß8Î»È«ÉèÖÃÎª1£»
+    // æ£€æŸ¥ç¬¬8æ˜¯å¦ä¸º1ï¼ˆè´Ÿæ•°ï¼‰ï¼Œä¸ºè´Ÿæ•°åˆ™è¦æ‰©å±•16ä½ï¼Œé«˜8ä½å…¨è®¾ç½®ä¸º1ï¼›
     if (addr_rel & 0x80) {
         addr_rel |= 0xFF00;
     }
@@ -107,9 +107,9 @@ uint8_t OLC6502::REL()
 
 uint8_t OLC6502::ABS()
 {
-    // Ö±½ÓÑ°Ö·Ä£Ê½£¨Ò²½Ğ¾ø¶ÔÑ°Ö·Ä£Ê½£©¡£ĞèÒªÁ½¸ö×Ö½ÚÀ´±íÊ¾Ò»¸öÍêÕûµÄ16Î»µØÖ·
-    // ËùÒÔĞèÒª¶ÁÈ¡µÚÒ»¸ö×Ö½ÚÎªµÍÎ»µØÖ·ºÍµÚ¶ş¸ö×Ö½ÚÎª¸ßÎ»µØÖ·£¬
-    // È»ºó½«ËüÃÇ×éºÏ³ÉÒ»¸ö16Î»µØÖ·
+    // ç›´æ¥å¯»å€æ¨¡å¼ï¼ˆä¹Ÿå«ç»å¯¹å¯»å€æ¨¡å¼ï¼‰ã€‚éœ€è¦ä¸¤ä¸ªå­—èŠ‚æ¥è¡¨ç¤ºä¸€ä¸ªå®Œæ•´çš„16ä½åœ°å€
+    // æ‰€ä»¥éœ€è¦è¯»å–ç¬¬ä¸€ä¸ªå­—èŠ‚ä¸ºä½ä½åœ°å€å’Œç¬¬äºŒä¸ªå­—èŠ‚ä¸ºé«˜ä½åœ°å€ï¼Œ
+    // ç„¶åå°†å®ƒä»¬ç»„åˆæˆä¸€ä¸ª16ä½åœ°å€
     const uint16_t addr_low = static_cast<uint16_t>(read(pc));
     pc++;
     const uint16_t addr_high = static_cast<uint16_t>(read(pc));
@@ -120,8 +120,8 @@ uint8_t OLC6502::ABS()
 
 uint8_t OLC6502::ABX()
 {
-    // Ö±½ÓX±äÖ·£¬ËüÓëÁãÒ³X±äÖ·ÏàËÆ£¬ÏÈ¶ÁÈ¡Ò»¸ö»ù×¼µØÖ·£¬
-    // È»ºóÔÙ¼ÓÉÏX¼Ä´æÆ÷µÄÖµ£¬ĞÎ³ÉĞÂµÄµØÖ·¡£
+    // ç›´æ¥Xå˜å€ï¼Œå®ƒä¸é›¶é¡µXå˜å€ç›¸ä¼¼ï¼Œå…ˆè¯»å–ä¸€ä¸ªåŸºå‡†åœ°å€ï¼Œ
+    // ç„¶åå†åŠ ä¸ŠXå¯„å­˜å™¨çš„å€¼ï¼Œå½¢æˆæ–°çš„åœ°å€ã€‚
     const uint16_t addr_low = static_cast<uint16_t>(read(pc));
     pc++;
     const uint16_t addr_high = static_cast<uint16_t>(read(pc));
@@ -129,14 +129,14 @@ uint8_t OLC6502::ABX()
     addr_abs = (addr_high << 8) | addr_low;
     addr_abs += x_register;
     if ((addr_abs & 0xFF00) != (addr_high << 8)) {
-        return 1; // ¿çÒ³£¬Ôö¼ÓÒ»¸öÖÜÆÚ
+        return 1; // è·¨é¡µï¼Œå¢åŠ ä¸€ä¸ªå‘¨æœŸ
     }
     return 0;
 }
 
 uint8_t OLC6502::ABY()
 {
-    // Ö±½ÓY±äÖ·£¬ÀàËÆÓÚÖ±½ÓX±äÖ·£¬Ö»²»¹ıÊÇÊ¹ÓÃY¼Ä´æÆ÷×÷ÎªÆ«ÒÆÁ¿
+    // ç›´æ¥Yå˜å€ï¼Œç±»ä¼¼äºç›´æ¥Xå˜å€ï¼Œåªä¸è¿‡æ˜¯ä½¿ç”¨Yå¯„å­˜å™¨ä½œä¸ºåç§»é‡
     const uint16_t addr_low = static_cast<uint16_t>(read(pc));
     pc++;
     const uint16_t addr_high = static_cast<uint16_t>(read(pc));
@@ -144,28 +144,28 @@ uint8_t OLC6502::ABY()
     addr_abs = (addr_high << 8) | addr_low;
     addr_abs += y_register;
     if ((addr_abs & 0xFF00) != (addr_high << 8)) {
-        return 1; // ¿çÒ³£¬Ôö¼ÓÒ»¸öÖÜÆÚ
+        return 1; // è·¨é¡µï¼Œå¢åŠ ä¸€ä¸ªå‘¨æœŸ
     }
     return 0;
 }
 
 uint8_t OLC6502::IND()
 {
-    // ¼ä½ÓÑ°Ö·
+    // é—´æ¥å¯»å€
     const uint16_t addr_low_ptr = static_cast<uint16_t>(read(pc));
     pc++;
     const uint16_t addr_high_ptr = static_cast<uint16_t>(read(pc));
     pc++;
     const uint16_t addr_ptr = ((addr_high_ptr << 8) | addr_low_ptr);
-    // Êµ¼ÊÉÏÕâÀïÓĞ¸öbug, Èç¹ûaddr_ptrÊÇ 0xFF ÄÇÃ´addr_ptr+1 Êµ¼ÊÉÏÊÇ¿çÒ³ÁË£¬ĞèÒª¶àÒ»¸öÖÜÆÚÀ´´¦Àí,
-    // µ«ÕâÀïÃ»ÓĞ´¦ÀíÕâ¸öÎÊÌâ£¡ TODO
+    // å®é™…ä¸Šè¿™é‡Œæœ‰ä¸ªbug, å¦‚æœaddr_ptræ˜¯ 0xFF é‚£ä¹ˆaddr_ptr+1 å®é™…ä¸Šæ˜¯è·¨é¡µäº†ï¼Œéœ€è¦å¤šä¸€ä¸ªå‘¨æœŸæ¥å¤„ç†,
+    // ä½†è¿™é‡Œæ²¡æœ‰å¤„ç†è¿™ä¸ªé—®é¢˜ï¼ TODO
     addr_abs = (static_cast<uint16_t>(read(addr_ptr + 1)) << 8) | static_cast<uint16_t>(read(addr_ptr + 0));
     return 0;
 }
 
 uint8_t OLC6502::IZX()
 {
-    // ÏÈ±äÖ·Xºó¼ä½ÓÑ°Ö·
+    // å…ˆå˜å€Xåé—´æ¥å¯»å€
     const uint16_t addr_ptr_zp = static_cast<uint16_t>(read(pc) + x_register);
     pc++;
     const uint16_t addr_low_ptr = static_cast<uint16_t>(read(addr_ptr_zp) & 0x00FF);
@@ -176,7 +176,7 @@ uint8_t OLC6502::IZX()
 
 uint8_t OLC6502::IZY()
 {
-    // ÏÈ±äÖ·Yºó¼ä½ÓÑ°Ö·
+    // å…ˆå˜å€Yåé—´æ¥å¯»å€
     const uint16_t addr_ptr_zp = static_cast<uint16_t>(read(pc) + x_register);
     pc++;
     const uint16_t addr_low_ptr = static_cast<uint16_t>(read(addr_ptr_zp) & 0x00FF);
@@ -192,9 +192,12 @@ uint8_t OLC6502::ADC()
 
 uint8_t OLC6502::AND()
 {
+    // é€»è¾‘ä¸
     const uint8_t data = read(addr_abs);
     accumulator_register = accumulator_register & data;
-    return 0;
+    setFlag(Flag::E_ZERO, accumulator_register == 0x00);
+    setFlag(Flag::E_NEGATIVE, accumulator_register & 0x80);
+    return 1;
 }
 
 uint8_t OLC6502::ASL()
@@ -204,11 +207,29 @@ uint8_t OLC6502::ASL()
 
 uint8_t OLC6502::BCC()
 {
+    // æ— è¿›ä½è·³è½¬æŒ‡ä»¤
+    if (getFlag(Flag::E_CARRAY_BIT) == 0x00) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
     return 0;
 }
 
 uint8_t OLC6502::BCS()
 {
+    // è¿›ä½è·³è½¬æŒ‡ä»¤
+    if (getFlag(Flag::E_CARRAY_BIT) == 0x01) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
     return 0;
 }
 
@@ -225,5 +246,23 @@ uint8_t OLC6502::BIT()
 uint8_t OLC6502::BMI()
 {
     return 0;
+}
+void OLC6502::clock()
+{
+    if (cycles == 0) {
+        opcode = read(pc);
+        setFlag(Flag::E_UNUSED, true);
+        pc++;
+        const auto& instruction = lookup[opcode];
+        cycles = instruction.cycles;
+        const auto additional_cycle1 = (this->*instruction.addrmode)();
+        const auto additional_cycle2 = (this->*instruction.operate)();
+        cycles += (additional_cycle1 & additional_cycle2); // è¿™é‡Œåªè¡¨ç¤ºä¸¤ä¸ªæ“ä½œæ˜¯å¦å½±å“äº†å‘¨æœŸï¼Œå½±å“äº†åˆ™å‘¨æœŸ+1ï¼Œå¦åˆ™ä¸å˜,åç»­ä¼˜åŒ–å®ç°TODO
+        setFlag(Flag::E_UNUSED, true);
+    }
+
+    cycle_count++;
+
+    cycles--;
 }
 }
