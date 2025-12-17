@@ -235,6 +235,15 @@ uint8_t OLC6502::BCS()
 
 uint8_t OLC6502::BEQ()
 {
+    // 相等转跳
+    if (getFlag(Flag::E_ZERO) == 0x01) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
     return 0;
 }
 
@@ -244,6 +253,155 @@ uint8_t OLC6502::BIT()
 }
 
 uint8_t OLC6502::BMI()
+{
+    // 负数转跳
+    if (getFlag(Flag::E_NEGATIVE) == 0x01) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
+    return 0;
+}
+uint8_t OLC6502::BNE()
+{
+    // 不相等跳转
+    if (getFlag(Flag::E_NEGATIVE) == 0x00) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
+    return 0;
+}
+uint8_t OLC6502::BPL()
+{
+    // 正数或零跳转
+    if (getFlag(Flag::E_NEGATIVE) == 0x00) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
+    return 0;
+}
+uint8_t OLC6502::BRK()
+{
+    return 0;
+}
+uint8_t OLC6502::BVC()
+{
+    // 溢出跳转
+    if (getFlag(Flag::E_OVERFLOW) == 0x00) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
+    return 0;
+}
+uint8_t OLC6502::BVS()
+{
+    // 溢出跳转
+    if (getFlag(Flag::E_OVERFLOW) == 0x01) {
+        cycles++;
+        addr_abs = pc + addr_rel;
+        if ((addr_abs & 0xFF00) != (pc & 0xFF00)) {
+            cycles++;
+        }
+        pc = addr_abs;
+    }
+    return 0;
+}
+uint8_t OLC6502::CLC()
+{
+    // 清除进位标志指令
+    setFlag(Flag::E_CARRAY_BIT, false);
+    return 0;
+}
+uint8_t OLC6502::CLD()
+{
+    // 清除十进制标志指令
+    setFlag(Flag::E_DECIMAL_MODE, false);
+    return 0;
+}
+uint8_t OLC6502::CLI()
+{
+    // 清除中断标志指令
+    setFlag(Flag::E_DISABLE_INTERRUPTS, false);
+    return 0;
+}
+uint8_t OLC6502::CLV()
+{
+    // 清除溢出标志指令
+    setFlag(Flag::E_OVERFLOW, false);
+    return 0;
+}
+uint8_t OLC6502::CMP()
+{
+    return 0;
+}
+uint8_t OLC6502::CPX()
+{
+    return 0;
+}
+uint8_t OLC6502::CPY()
+{
+    return 0;
+}
+uint8_t OLC6502::DEC()
+{
+    return 0;
+}
+uint8_t OLC6502::DEX()
+{
+    return 0;
+}
+uint8_t OLC6502::DEY()
+{
+    return 0;
+}
+uint8_t OLC6502::EOR()
+{
+    return 0;
+}
+uint8_t OLC6502::INC()
+{
+    return 0;
+}
+uint8_t OLC6502::INX()
+{
+    return 0;
+}
+uint8_t OLC6502::INY()
+{
+    return 0;
+}
+uint8_t OLC6502::JMP()
+{
+    return 0;
+}
+uint8_t OLC6502::JSR()
+{
+    return 0;
+}
+uint8_t OLC6502::LDA()
+{
+    return 0;
+}
+uint8_t OLC6502::LDX()
+{
+    return 0;
+}
+uint8_t OLC6502::LDY()
 {
     return 0;
 }
