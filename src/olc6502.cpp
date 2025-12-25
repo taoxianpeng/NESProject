@@ -187,6 +187,24 @@ uint8_t OLC6502::IZY()
 
 uint8_t OLC6502::ADC()
 {
+    // 加法指令
+    const uint8_t data = read(addr_abs);
+    const uint16_t temp = static_cast<uint16_t>(accumulator_register) 
+        + static_cast<uint16_t>(data) 
+        + static_cast<uint16_t>(getFlag(Flag::E_CARRAY_BIT));
+    // 如果temp大于255，则设置进位标志
+    setFlag(Flag::E_CARRAY_BIT, temp > 255U);
+    // 如果结果为0，则设置零标志
+    setFlag(Flag::E_ZERO, (temp & 0x00FF) == 0x00);
+    // 是否设置溢出标志
+    setFlag(Flag::E_OVERFLOW,
+        (~(static_cast<uint16_t>(accumulator_register) + static_cast<uint16_t>(data)))
+        & (static_cast<uint16_t>(accumulator_register) ^ static_cast<uint16_t>(temp))
+        & 0x80);
+    // 是否为负数
+    setFlag(Flag::E_NEGATIVE, temp & 0x80);
+    // 将结果写回到acc寄存器中,(注意数据大小是8bit)
+    accumulator_register = temp & 0x00FF;
     return 0;
 }
 
@@ -402,6 +420,102 @@ uint8_t OLC6502::LDX()
     return 0;
 }
 uint8_t OLC6502::LDY()
+{
+    return 0;
+}
+uint8_t OLC6502::LSR()
+{
+    return 0;
+}
+uint8_t OLC6502::NOP()
+{
+    return 0;
+}
+uint8_t OLC6502::ORA()
+{
+    return 0;
+}
+uint8_t OLC6502::PHA()
+{
+    return 0;
+}
+uint8_t OLC6502::PHP()
+{
+    return 0;
+}
+uint8_t OLC6502::PLA()
+{
+    return 0;
+}
+uint8_t OLC6502::PLP()
+{
+    return 0;
+}
+uint8_t OLC6502::ROL()
+{
+    return 0;
+}
+uint8_t OLC6502::ROR()
+{
+    return 0;
+}
+uint8_t OLC6502::RTI()
+{
+    return 0;
+}
+uint8_t OLC6502::RTS()
+{
+    return 0;
+}
+uint8_t OLC6502::SBC()
+{
+    return 0;
+}
+uint8_t OLC6502::SEC()
+{
+    return 0;
+}
+uint8_t OLC6502::SED()
+{
+    return 0;
+}
+uint8_t OLC6502::SEI()
+{
+    return 0;
+}
+uint8_t OLC6502::STA()
+{
+    return 0;
+}
+uint8_t OLC6502::STX()
+{
+    return 0;
+}
+uint8_t OLC6502::STY()
+{
+    return 0;
+}
+uint8_t OLC6502::TAX()
+{
+    return 0;
+}
+uint8_t OLC6502::TAY()
+{
+    return 0;
+}
+uint8_t OLC6502::TSX()
+{
+    return 0;
+}
+uint8_t OLC6502::TXA()
+{
+    return 0;
+}
+uint8_t OLC6502::TXS()
+{
+    return 0;
+}
+uint8_t OLC6502::TYA()
 {
     return 0;
 }
