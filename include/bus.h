@@ -2,6 +2,7 @@
 #define BUS_H
 
 #include <array>
+#include <cstdint>
 
 namespace nes {
 class Bus {

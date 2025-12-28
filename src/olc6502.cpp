@@ -1,6 +1,7 @@
 ﻿#include "olc6502.h"
 #include <cstdio>
 #include <bus.h>
+#include <spdlog/spdlog.h>
 
 namespace nes {
 void OLC6502::write(uint16_t address, uint8_t data)
@@ -20,7 +21,7 @@ uint8_t OLC6502::read(uint16_t address)
         return bus->read(address);
     }
     else {
-        printf("Error: bus is nullptr!");
+        spdlog::error("Error: bus is nullptr!");
     }
 }
 
