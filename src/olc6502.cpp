@@ -469,6 +469,8 @@ uint8_t OLC6502::RTS()
 }
 uint8_t OLC6502::SBC()
 {
+    // 减法指令
+
     return 0;
 }
 uint8_t OLC6502::SEC()
@@ -516,6 +518,10 @@ uint8_t OLC6502::TXS()
     return 0;
 }
 uint8_t OLC6502::TYA()
+{
+    return 0;
+}
+uint8_t OLC6502::XXX()
 {
     return 0;
 }
