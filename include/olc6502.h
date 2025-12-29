@@ -6,6 +6,9 @@
 #include <vector>
 
 namespace nes {
+
+constexpr uint16_t STACK_OFFSET = 0x0100;
+
 class Bus;
 
 enum Flag : uint8_t
@@ -38,6 +41,8 @@ public:
     uint8_t read(uint16_t address);
 
     void reset();
+    void irq(); // 中断请求函数
+    void nmi(); // 不可屏蔽中断请求函数
 
 public:
     uint8_t  accumulator_register = 0x00;		// 累计寄存器

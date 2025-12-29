@@ -1,7 +1,9 @@
 ﻿#include "olc6502.h"
+
 #include <cstdio>
-#include <bus.h>
 #include <spdlog/spdlog.h>
+
+#include "bus.h"
 
 namespace nes {
 void OLC6502::write(uint16_t address, uint8_t data)
@@ -29,8 +31,8 @@ void OLC6502::reset()
 {
     // Get address to set program counter to
     addr_abs = 0xFFFC;
-    uint16_t lo = read(addr_abs + 0);
-    uint16_t hi = read(addr_abs + 1);
+    const uint16_t lo = read(addr_abs + 0);
+    const uint16_t hi = read(addr_abs + 1);
 
     // Set it
     pc = (hi << 8) | lo;
@@ -44,8 +46,53 @@ void OLC6502::reset()
     addr_abs = 0x0000;
     addr_rel = 0x0000;
 
-    cycles = 0;
-    cycle_count = 0;
+    cycles = 8;
+}
+
+void OLC6502::irq()
+{
+    if (getFlag(E_DISABLE_INTERRUPTS) == 0) {
+        // 保存上下文
+        write(STACK_OFFSET + static_cast<uint16_t>(sp), (pc >> 8) & 0x00FF);
+        sp--;
+        write(STACK_OFFSET + static_cast<uint16_t>(sp), pc & 0x00FF);
+        sp--;
+
+        setFlag(E_BREAK, 0);
+        setFlag(E_DISABLE_INTERRUPTS, 1);
+        setFlag(E_UNUSED, 1);
+
+        write(STACK_OFFSET + static_cast<uint16_t>(sp), status_register);
+        sp--;
+
+        addr_abs = 0xFFFE;
+        const uint16_t lo = read(addr_abs);
+        const uint16_t hi = read(addr_abs + 1);
+        pc = hi << 8 | lo;
+        cycles = 7;
+    }
+}
+
+void OLC6502::nmi()
+{
+    // 保存上下文
+    write(STACK_OFFSET + static_cast<uint16_t>(sp), (pc >> 8) & 0x00FF);
+    sp--;
+    write(STACK_OFFSET + static_cast<uint16_t>(sp), pc & 0x00FF);
+    sp--;
+
+    setFlag(E_BREAK, 0);
+    setFlag(E_DISABLE_INTERRUPTS, 1);
+    setFlag(E_UNUSED, 1);
+
+    write(STACK_OFFSET + static_cast<uint16_t>(sp), status_register);
+    sp--;
+
+    addr_abs = 0xFFFA;
+    const uint16_t lo = read(addr_abs);
+    const uint16_t hi = read(addr_abs + 1);
+    pc = hi << 8 | lo;
+    cycles = 7;
 }
 
 uint8_t OLC6502::IMP()
@@ -366,18 +413,43 @@ uint8_t OLC6502::CLV()
 }
 uint8_t OLC6502::CMP()
 {
+    // 累加寄存器与内存数据比较
+    const uint16_t data = static_cast<uint16_t>(read(pc));
+    const uint16_t tmp = accumulator_register - data;
+    setFlag(E_CARRAY_BIT, accumulator_register > data);
+    setFlag(E_ZERO, tmp == 0x0000);
+    setFlag(E_NEGATIVE, tmp & 0x0080);
+
     return 0;
 }
 uint8_t OLC6502::CPX()
 {
+    // X寄存器与内存数据比较
+    const uint16_t data = static_cast<uint16_t>(read(pc));
+    const uint16_t tmp = x_register - data;
+    setFlag(E_CARRAY_BIT, x_register > data);
+    setFlag(E_ZERO, tmp == 0x0000);
+    setFlag(E_NEGATIVE, tmp & 0x0080);
     return 0;
 }
 uint8_t OLC6502::CPY()
 {
+    // Y寄存器与内存数据比较
+    const uint16_t data = static_cast<uint16_t>(read(pc));
+    const uint16_t tmp = y_register - data;
+    setFlag(E_CARRAY_BIT, y_register > data);
+    setFlag(E_ZERO, tmp == 0x0000);
+    setFlag(E_NEGATIVE, tmp & 0x0080);
     return 0;
 }
 uint8_t OLC6502::DEC()
 {
+    const uint8_t data = read(pc);
+    const uint8_t tmp = data - 0x01;
+    setFlag(E_ZERO, tmp == 0x00);
+    setFlag(E_NEGATIVE, tmp & 0x0080);
+    write(pc, tmp & 0x00FF);
+
     return 0;
 }
 uint8_t OLC6502::DEX()
@@ -438,6 +510,10 @@ uint8_t OLC6502::ORA()
 }
 uint8_t OLC6502::PHA()
 {
+    // 入栈指令
+    write(STACK_OFFSET + static_cast<uint16_t>(sp), accumulator_register);
+    sp--;
+
     return 0;
 }
 uint8_t OLC6502::PHP()
@@ -446,6 +522,12 @@ uint8_t OLC6502::PHP()
 }
 uint8_t OLC6502::PLA()
 {
+    // 出栈指令
+    sp--;
+    accumulator_register = read(STACK_OFFSET + static_cast<uint16_t>(sp));
+    setFlag(E_ZERO, accumulator_register == 0x00);
+    setFlag(E_NEGATIVE, accumulator_register & 0x80);
+
     return 0;
 }
 uint8_t OLC6502::PLP()
@@ -462,6 +544,17 @@ uint8_t OLC6502::ROR()
 }
 uint8_t OLC6502::RTI()
 {
+    // 返回中断位置函数
+    sp++;
+    status_register = read(STACK_OFFSET + sp);
+    status_register &= ~E_BREAK;
+    status_register &= ~E_UNUSED;
+    sp++;
+    const uint8_t lo = read(STACK_OFFSET + sp);
+    sp++;
+    const uint8_t hi = read(STACK_OFFSET + sp);
+    pc = (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
+
     return 0;
 }
 uint8_t OLC6502::RTS()
@@ -471,7 +564,23 @@ uint8_t OLC6502::RTS()
 uint8_t OLC6502::SBC()
 {
     // 减法指令
-
+    const uint8_t data = read(addr_abs);
+    const uint16_t temp = static_cast<uint16_t>(accumulator_register)
+        + static_cast<uint16_t>(data)
+        + static_cast<uint16_t>(getFlag(Flag::E_CARRAY_BIT));
+    // 如果temp大于255，则设置进位标志
+    setFlag(Flag::E_CARRAY_BIT, temp & 0x00FF);
+    // 如果结果为0，则设置零标志
+    setFlag(Flag::E_ZERO, (temp & 0x00FF) == 0x00);
+    // 是否设置溢出标志
+    setFlag(Flag::E_OVERFLOW,
+        ((static_cast<uint16_t>(accumulator_register) + static_cast<uint16_t>(data)))
+        & (static_cast<uint16_t>(accumulator_register) ^ static_cast<uint16_t>(temp))
+        & 0x80);
+    // 是否为负数
+    setFlag(Flag::E_NEGATIVE, temp & 0x80);
+    // 将结果写回到acc寄存器中,(注意数据大小是8bit)
+    accumulator_register = temp & 0x00FF;
     return 0;
 }
 uint8_t OLC6502::SEC()
@@ -538,10 +647,13 @@ void OLC6502::clock()
         const auto additional_cycle2 = (this->*instruction.operate)();
         cycles += (additional_cycle1 & additional_cycle2); // 这里只表示两个操作是否影响了周期，影响了则周期+1，否则不变,后续优化实现TODO
         setFlag(Flag::E_UNUSED, true);
+
+        spdlog::info("cycle_count:{}, instruction:{}, cycles:{}, Register a:{}, x:{}, y:{}, status:{}; sp:{}, pc: {}",
+            cycle_count, instruction.name, instruction.cycles, accumulator_register, 
+            x_register, y_register, status_register, sp, pc);
     }
 
     cycle_count++;
-
     cycles--;
 }
 }
