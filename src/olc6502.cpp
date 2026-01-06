@@ -414,7 +414,7 @@ uint8_t OLC6502::CLV()
 uint8_t OLC6502::CMP()
 {
     // 累加寄存器与内存数据比较
-    const uint16_t data = static_cast<uint16_t>(read(pc));
+    const uint16_t data = static_cast<uint16_t>(read(addr_abs));
     const uint16_t tmp = accumulator_register - data;
     setFlag(E_CARRAY_BIT, accumulator_register > data);
     setFlag(E_ZERO, tmp == 0x0000);
@@ -425,7 +425,7 @@ uint8_t OLC6502::CMP()
 uint8_t OLC6502::CPX()
 {
     // X寄存器与内存数据比较
-    const uint16_t data = static_cast<uint16_t>(read(pc));
+    const uint16_t data = static_cast<uint16_t>(read(addr_abs));
     const uint16_t tmp = x_register - data;
     setFlag(E_CARRAY_BIT, x_register > data);
     setFlag(E_ZERO, tmp == 0x0000);
@@ -435,7 +435,7 @@ uint8_t OLC6502::CPX()
 uint8_t OLC6502::CPY()
 {
     // Y寄存器与内存数据比较
-    const uint16_t data = static_cast<uint16_t>(read(pc));
+    const uint16_t data = static_cast<uint16_t>(read(addr_abs));
     const uint16_t tmp = y_register - data;
     setFlag(E_CARRAY_BIT, y_register > data);
     setFlag(E_ZERO, tmp == 0x0000);
@@ -444,68 +444,155 @@ uint8_t OLC6502::CPY()
 }
 uint8_t OLC6502::DEC()
 {
-    const uint8_t data = read(pc);
+    // 对内存中的数值减一
+    const uint8_t data = read(addr_abs);
     const uint8_t tmp = data - 0x01;
     setFlag(E_ZERO, tmp == 0x00);
     setFlag(E_NEGATIVE, tmp & 0x0080);
-    write(pc, tmp & 0x00FF);
+    write(addr_abs, tmp & 0x00FF);
 
     return 0;
 }
 uint8_t OLC6502::DEX()
 {
+    // 对x寄存器数值减一
+    x_register--;
+    setFlag(E_ZERO, x_register == 0x00);
+    setFlag(E_NEGATIVE, x_register & 0x0080);
+
     return 0;
 }
 uint8_t OLC6502::DEY()
 {
+    // 对y寄存器数值减一
+    y_register--;
+    setFlag(E_ZERO, y_register == 0x00);
+    setFlag(E_NEGATIVE, y_register & 0x0080);
+
     return 0;
 }
 uint8_t OLC6502::EOR()
 {
-    return 0;
+    // 将内存的值与累加寄存器的值进行异或操作
+    const uint8_t data = read(addr_abs);
+    accumulator_register ^= data;
+    setFlag(E_ZERO, accumulator_register == 0);
+    setFlag(E_NEGATIVE, accumulator_register & 0x0080);
+
+    return 1;
 }
 uint8_t OLC6502::INC()
 {
+    // 将内存的值加1
+    const uint8_t data = read(addr_abs);
+    const uint8_t tmp = data + 1;
+    setFlag(E_ZERO, tmp == 0);
+    setFlag(E_NEGATIVE, tmp & 0x80);
+    write(pc, tmp);
+
     return 0;
 }
 uint8_t OLC6502::INX()
 {
+    // 将x寄存器的值加1
+    x_register++;
+    setFlag(E_ZERO, x_register == 0);
+    setFlag(E_NEGATIVE, x_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::INY()
 {
+    // 将y寄存器的值加1
+    y_register++;
+    setFlag(E_ZERO, y_register == 0);
+    setFlag(E_NEGATIVE, y_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::JMP()
 {
+    // 转跳指令
+    pc = addr_abs;
     return 0;
 }
 uint8_t OLC6502::JSR()
 {
+    // 转跳子程序
+    // 将当前的pc地址存储到栈中，将pc设置为addr_abs保存的地址
+    pc--;
+    write(STACK_OFFSET + sp, (pc >> 8) & 0x00FF);
+    sp--;
+    write(STACK_OFFSET + sp, pc & 0x00FF);
+    sp--;
+    pc = addr_abs;
     return 0;
 }
 uint8_t OLC6502::LDA()
 {
+    // 将内存中的值加载到累加寄存器中
+    accumulator_register = read(addr_abs);
+    setFlag(E_ZERO, accumulator_register == 0);
+    setFlag(E_NEGATIVE, accumulator_register & 0x0080);
     return 0;
 }
 uint8_t OLC6502::LDX()
 {
+    // 将内存中的值加载到x寄存器中
+    x_register = read(pc);
+    setFlag(E_ZERO, x_register == 0);
+    setFlag(E_NEGATIVE, x_register & 0x0080);
     return 0;
 }
 uint8_t OLC6502::LDY()
 {
+    // 将内存中的值加载到y寄存器中
+    y_register = read(addr_abs);
+    setFlag(E_ZERO, y_register == 0);
+    setFlag(E_NEGATIVE, y_register & 0x0080);
     return 0;
 }
 uint8_t OLC6502::LSR()
 {
+    // 逻辑右移
+    if (lookup[opcode].operate == &OLC6502::IMP) {
+        const uint8_t data = accumulator_register;
+        const uint8_t tmp = data >> 1;
+        setFlag(E_CARRAY_BIT, accumulator_register & 0x01);
+        setFlag(E_ZERO, tmp == 0);
+        setFlag(E_NEGATIVE, 0);
+        accumulator_register = tmp;
+    }
+    else {
+        const uint8_t data = read(addr_abs);
+        const uint8_t tmp = data >> 1;
+        setFlag(E_CARRAY_BIT, accumulator_register & 0x01);
+        setFlag(E_ZERO, tmp == 0);
+        setFlag(E_NEGATIVE, 0);
+        write(addr_abs, tmp);
+    }
+    
     return 0;
 }
 uint8_t OLC6502::NOP()
 {
+    // 无操作指令，只为了消耗cpu周期
+    switch (opcode) {
+    case 0x1C:
+    case 0x3C:
+    case 0x5C:
+    case 0x7C:
+    case 0xDC:
+    case 0xFC:
+        return 1;
+        break;
+    }
     return 0;
 }
 uint8_t OLC6502::ORA()
 {
+    const uint8_t data = read(addr_abs);
+    accumulator_register |= data;
+    setFlag(E_ZERO, accumulator_register == 0);
+    setFlag(E_NEGATIVE, accumulator_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::PHA()
@@ -518,12 +605,17 @@ uint8_t OLC6502::PHA()
 }
 uint8_t OLC6502::PHP()
 {
+    write(STACK_OFFSET + sp, status_register | E_BREAK | E_UNUSED);
+    setFlag(E_BREAK, 0);
+    setFlag(E_UNUSED, 0);
+    sp--;
+
     return 0;
 }
 uint8_t OLC6502::PLA()
 {
     // 出栈指令
-    sp--;
+    sp++;
     accumulator_register = read(STACK_OFFSET + static_cast<uint16_t>(sp));
     setFlag(E_ZERO, accumulator_register == 0x00);
     setFlag(E_NEGATIVE, accumulator_register & 0x80);
@@ -532,14 +624,55 @@ uint8_t OLC6502::PLA()
 }
 uint8_t OLC6502::PLP()
 {
+    // 从栈中弹出存储的状态值
+    sp++;
+    status_register = read(STACK_OFFSET + static_cast<uint16_t>(sp));
+    setFlag(E_UNUSED, 1);
+
     return 0;
 }
 uint8_t OLC6502::ROL()
 {
+    // 向左旋转.ROL指令将内存值或累加器向左移位，将每个位的值移入下一个位，
+    // 并将进位标志视为同时位于位7之上和位0之下
+    if (lookup[opcode].operate == &OLC6502::IMP) {
+        const uint8_t data = accumulator_register;
+        const uint8_t tmp = (data << 1) | getFlag(E_CARRAY_BIT);
+        setFlag(E_CARRAY_BIT, data & 0x80);
+        setFlag(E_ZERO, tmp == 0);
+        setFlag(E_NEGATIVE, tmp & 0x80);
+        accumulator_register = tmp;
+    }
+    else {
+        const uint8_t data = read(addr_abs);
+        const uint8_t tmp = (data << 1) | getFlag(E_CARRAY_BIT);
+        setFlag(E_CARRAY_BIT, data & 0x80);
+        setFlag(E_ZERO, tmp == 0);
+        setFlag(E_NEGATIVE, tmp & 0x80);
+        write(addr_abs, tmp);
+    }
     return 0;
 }
 uint8_t OLC6502::ROR()
 {
+    // 向右旋转.ROL指令将内存值或累加器向左移位，将每个位的值移入下一个位， 
+    // 并将进位标志视为同时位于位7之上和位0之下
+    if (lookup[opcode].operate == &OLC6502::IMP) {
+        const uint8_t data = accumulator_register;
+        const uint8_t tmp = (data >> 1) | (getFlag(E_CARRAY_BIT)  << 7);
+        setFlag(E_CARRAY_BIT, data & 0x01);
+        setFlag(E_ZERO, tmp == 0);
+        setFlag(E_NEGATIVE, tmp & 0x80);
+        accumulator_register = tmp;
+    }
+    else {
+        const uint8_t data = read(addr_abs);
+        const uint8_t tmp = (data << 1) | (getFlag(E_CARRAY_BIT) << 7);
+        setFlag(E_CARRAY_BIT, data & 0x01);
+        setFlag(E_ZERO, tmp == 0);
+        setFlag(E_NEGATIVE, tmp & 0x80);
+        write(addr_abs, tmp);
+    }
     return 0;
 }
 uint8_t OLC6502::RTI()
@@ -559,6 +692,13 @@ uint8_t OLC6502::RTI()
 }
 uint8_t OLC6502::RTS()
 {
+    sp++;
+    const uint8_t lo = read(STACK_OFFSET + sp);
+    sp++;
+    const uint8_t hi = read(STACK_OFFSET + sp);
+    pc = (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
+    pc++;
+
     return 0;
 }
 uint8_t OLC6502::SBC()
@@ -585,50 +725,70 @@ uint8_t OLC6502::SBC()
 }
 uint8_t OLC6502::SEC()
 {
+    setFlag(E_CARRAY_BIT, 1);
     return 0;
 }
 uint8_t OLC6502::SED()
 {
+    setFlag(E_DECIMAL_MODE, 1);
     return 0;
 }
 uint8_t OLC6502::SEI()
 {
+    setFlag(E_DISABLE_INTERRUPTS, 1);
     return 0;
 }
 uint8_t OLC6502::STA()
 {
+    write(addr_abs, accumulator_register);
     return 0;
 }
 uint8_t OLC6502::STX()
 {
+    write(addr_abs, x_register);
     return 0;
 }
 uint8_t OLC6502::STY()
 {
+    write(addr_abs, y_register);
     return 0;
 }
 uint8_t OLC6502::TAX()
 {
+    x_register = read(addr_abs);
+    setFlag(E_ZERO, x_register == 0);
+    setFlag(E_NEGATIVE, x_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::TAY()
 {
+    y_register = read(addr_abs);
+    setFlag(E_ZERO, y_register == 0);
+    setFlag(E_NEGATIVE, y_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::TSX()
 {
+    x_register = sp;
+    setFlag(E_ZERO, x_register == 0);
+    setFlag(E_NEGATIVE, x_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::TXA()
 {
+    accumulator_register = x_register;
+    setFlag(E_ZERO, accumulator_register == 0);
+    setFlag(E_NEGATIVE, accumulator_register & 0x80);
     return 0;
 }
 uint8_t OLC6502::TXS()
 {
+    sp = x_register;
     return 0;
 }
 uint8_t OLC6502::TYA()
 {
+    accumulator_register = y_register;
     return 0;
 }
 uint8_t OLC6502::XXX()
