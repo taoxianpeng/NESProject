@@ -92,7 +92,7 @@ public:
 
 	std::unique_ptr<OLC6502> cpu = std::make_unique<OLC6502>();
 	std::shared_ptr<Bus> bus = std::make_shared<Bus>();
-	std::unordered_map<uint16_t, std::string> mapAsm;
+	std::map<uint16_t, std::string> mapAsm;
 
 	std::string hex(uint32_t n, uint8_t d)
 	{
@@ -147,9 +147,10 @@ public:
 			while (nLineY < (nLines * 10) + y)
 			{
 				nLineY += 10;
-				if (++it_a != mapAsm.end())
+				if (it_a != mapAsm.end())
 				{
 					DrawString(x, nLineY, (*it_a).second);
+					it_a++;
 				}
 			}
 		}

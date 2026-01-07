@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <unordered_map>
+#include <map>
 
 namespace nes {
 
@@ -35,7 +35,7 @@ public:
     void nmi(); // 不可屏蔽中断请求函数
 
     void clock();
-    std::unordered_map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t len);
+    std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t len);
     bool complete();
 
 public:

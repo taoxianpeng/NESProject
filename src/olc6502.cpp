@@ -795,13 +795,13 @@ uint8_t OLC6502::XXX()
 {
     return 0;
 }
-std::unordered_map<uint16_t, std::string> OLC6502::disassemble(uint16_t nStart, uint16_t len)
+std::map<uint16_t, std::string> OLC6502::disassemble(uint16_t nStart, uint16_t len)
 {
     uint32_t addr = nStart;
     uint8_t value = 0x00;
     uint8_t lo = 0x00;
     uint8_t hi = 0x00;
-    std::unordered_map<uint16_t, std::string> mapLines;
+    std::map<uint16_t, std::string> mapLines;
     uint16_t line_addr = 0;
 
     auto hex = [](uint32_t n, uint8_t d) -> std::string
