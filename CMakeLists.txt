@@ -55,12 +55,12 @@ else()
 endif()
 
 set(SOURCES
-    ${CMAKE_SOURCE_DIR}/src/main.cpp
+    
     ${CMAKE_SOURCE_DIR}/src/bus.cpp
     ${CMAKE_SOURCE_DIR}/src/olc6502.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} "src/olcPixelGameEngine.h" "src/olcNes_Video1_6502.cpp")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

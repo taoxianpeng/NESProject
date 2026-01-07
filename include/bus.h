@@ -30,7 +30,7 @@ public:
         }
     }
 
-private:
+public:
     std::array<uint8_t, 64 * 1024> ram;
 };
 }

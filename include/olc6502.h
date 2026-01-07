@@ -4,24 +4,14 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
+#include <unordered_map>
 
 namespace nes {
 
 constexpr uint16_t STACK_OFFSET = 0x0100;
 
 class Bus;
-
-enum Flag : uint8_t
-{
-    E_CARRAY_BIT = (1 << 0),	        // 进位标志位
-    E_ZERO = (1 << 1),	                // 零标志位
-    E_DISABLE_INTERRUPTS = (1 << 2),	// 关闭中断标志位
-    E_DECIMAL_MODE = (1 << 3),	        // Decimal Mode (unused in this implementation)
-    E_BREAK = (1 << 4),	                // Break
-    E_UNUSED = (1 << 5),	            // Unused
-    E_OVERFLOW = (1 << 6),	            // Overflow
-    E_NEGATIVE = (1 << 7),	            // Negative
-};
 
 class OLC6502 {
 public:
@@ -32,7 +22,7 @@ public:
     void operator=(const OLC6502&) = delete;
     void operator=(const OLC6502&&) = delete;
 
-    void connectBus(Bus* bus) {
+    void connectBus(const std::shared_ptr<Bus>& bus) {
         this->bus = bus;
     }
 
@@ -44,13 +34,29 @@ public:
     void irq(); // 中断请求函数
     void nmi(); // 不可屏蔽中断请求函数
 
+    void clock();
+    std::unordered_map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t len);
+    bool complete();
+
 public:
-    uint8_t  accumulator_register = 0x00;		// 累计寄存器
-    uint8_t  x_register = 0x00;		            // X 寄存器
-    uint8_t  y_register = 0x00;		            // Y 寄存器
-    uint8_t  sp = 0x00;		                    // 堆栈指针
-    uint16_t pc = 0x0000;	                    // 程序计数器
-    uint8_t  status_register = 0x00;		    // 状态寄存器
+    enum Flag : uint8_t
+    {
+        C = (1 << 0),	        // 进位标志位
+        Z = (1 << 1),	        // 零标志位
+        I = (1 << 2),	        // 关闭中断标志位
+        D = (1 << 3),	        // Decimal Mode (unused in this implementation)
+        B = (1 << 4),	        // Break
+        U = (1 << 5),	        // Unused
+        V = (1 << 6),	        // Overflow
+        N = (1 << 7),           // Negative
+    };
+
+    uint8_t  a = 0x00;		    // 累计寄存器
+    uint8_t  x = 0x00;		    // X 寄存器
+    uint8_t  y = 0x00;          // Y 寄存器
+    uint8_t  sp = 0x00;		    // 堆栈指针
+    uint16_t pc = 0x0000;	    // 程序计数器
+    uint8_t  status = 0x00;		// 状态寄存器
 
 private:
     uint8_t IMP();	uint8_t IMM();
@@ -78,22 +84,21 @@ private:
     uint8_t XXX();
 
     uint8_t getFlag(Flag flag) {
-        return (status_register & flag) > 0 ? 1 : 0;
+        return (status & flag) > 0 ? 1 : 0;
     }
     
     void setFlag(Flag flag, bool value) {
         if (value) {
-            status_register |= flag;
+            status |= flag;
         }
         else {
-            status_register &= ~flag;
+            status &= ~flag;
         }
     }
 
-    void clock();
 
 private:
-    Bus* bus;
+    std::weak_ptr<Bus> bus;
     uint16_t addr_abs = 0x0000;
     uint16_t addr_rel = 0x0000;
     uint8_t opcode = 0x00;
