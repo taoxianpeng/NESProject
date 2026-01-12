@@ -537,7 +537,7 @@ uint8_t OLC6502::LDA()
 uint8_t OLC6502::LDX()
 {
     // 将内存中的值加载到x寄存器中
-    x = read(pc);
+    x = read(addr_abs);
     setFlag(Z, x == 0);
     setFlag(N, x & 0x0080);
     return 0;
