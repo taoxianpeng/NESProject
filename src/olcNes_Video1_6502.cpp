@@ -75,7 +75,7 @@
 #include <sstream>
 
 #include "bus.h"
-#include "OLC6502.h"
+#include "olc6502.h"
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
