@@ -60,9 +60,11 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/olc6502.cpp
 )
 
-find_package(OpenGL REQUIRED)
-find_package(X11 REQUIRED)
-find_package(PNG REQUIRED)
+if (NOT WIN32)
+    find_package(OpenGL REQUIRED)
+    find_package(X11 REQUIRED)
+    find_package(PNG REQUIRED)
+endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES} "src/olcPixelGameEngine.h" "src/olcNes_Video1_6502.cpp")
 
@@ -70,10 +72,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+if (NOT WIN32)
+    target_include_directories(${PROJECT_NAME} PRIVATE 
+        ${OPENGL_INCLUDE_DIRS}
+        ${X11_INCLUDE_DIRS}
+        ${PNG_INCLUDE_DIRS}
+        pthread
+    )
+endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     spdlog::spdlog
-    ${OPENGL_LIBRARIES}
-    ${X11_LIBRARIES}
-    ${PNG_LIBRARIES}
-    pthread
 )
